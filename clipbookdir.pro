@@ -10,5 +10,6 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/changelog
 
 SUBDIRS += \
+    clipbookui \
     clipbookdaemon \
-    clipbookui
+    clipbookdm

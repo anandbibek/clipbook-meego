@@ -12,6 +12,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     QmlClipboardAdapter myAdapter;
     QmlApplicationViewer viewer;
+    system("killall clipbookdm");
     viewer.setAttribute(Qt::WA_NoSystemBackground);
     viewer.setAutoFillBackground(false);
 

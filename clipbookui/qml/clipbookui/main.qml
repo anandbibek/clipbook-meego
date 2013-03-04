@@ -12,10 +12,9 @@ PageStackWindow {
         if(autoRun.value) {
             clippie.startDaemon()
         }
-        else
-            clippie.killDaemon()
         theme.inverted = themeSetting.value
         pageStack.push(mainPage)
+        clippie.readDatabase()
     }
 
 
@@ -23,10 +22,10 @@ PageStackWindow {
         id : mainPage
     }
 
-    WorkerScript{
-        id: worker1
-        source: "storage.js"
-    }
+//    WorkerScript{
+//        id: worker1
+//        source: "storage.js"
+//    }
 
     GConfItem {
        id: themeSetting

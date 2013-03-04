@@ -9,7 +9,6 @@ MouseArea {
     property alias itemTitle: todoTitle.text
     property alias lineCount: todoTitle.maximumLineCount
     property alias date: customdate.text
-    property bool newItem
     signal dragged()
 
     width: parent.width
@@ -56,28 +55,6 @@ MouseArea {
         }
         PropertyAction { target: listItem; property: "ListView.delayRemove"; value: false }
     }
-
-    ListView.onAdd: SequentialAnimation {
-        PropertyAction { target: listItem; property: "height"; value: 0 }
-        ParallelAnimation {
-            NumberAnimation {
-                target: listItem
-                property: "height"
-                to: listItem.height
-                duration: 200
-                easing.type: Easing.OutBack
-            }
-            NumberAnimation {
-                target: listItem
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 200
-                easing.type: Easing.Linear
-            }
-        }
-    }
-
 
 
     BorderImage {

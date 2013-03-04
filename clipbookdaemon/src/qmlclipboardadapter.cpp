@@ -2,9 +2,7 @@
 
 QmlClipboardAdapter :: QmlClipboardAdapter(QObject *parent):
     QObject(parent),
-    m_text(""),
-    m_entry(""),
-    m_date("")
+    m_text("")
 {
     clipboard = QApplication::clipboard();
     m_text = clipboard->text(QClipboard::Clipboard);
@@ -26,33 +24,13 @@ QmlClipboardAdapter :: QmlClipboardAdapter(QObject *parent):
                      this, SLOT(onDataChanged()));
 }
 
-void QmlClipboardAdapter :: readDatabase(){
-    QSqlQuery query;
-    query.exec("SELECT * FROM clip ORDER BY id DESC");
-    while(query.next()) {
-        m_entry = query.value(0).toString();
-        m_date = query.value(1).toString();
-        emit entryChanged();
-    }
-    emit readFinished();
-}
-
-void QmlClipboardAdapter :: writeToFile(QString data, QString file)
-{
-    QString command = "echo \"" + data + "\" >> " + file ;
-    QByteArray byte = command.toLocal8Bit();
-    const char *c = byte.data() ;
-    system(c);
-}
-
-void QmlClipboardAdapter :: onDataChanged(void){
+void QmlClipboardAdapter :: onDataChanged(){
     QString temp = clipboard->text(QClipboard::Clipboard);
     if(temp != m_text)
     {
         m_text = clipboard->text(QClipboard::Clipboard);
-        qDebug() << "Clipboard changed :: " << m_text;
+        qDebug() << "Clipboard changed (daemon) :: " << m_text;
         emit textChanged();
-        //Add auto call to DB write if daemon
     }
 }
 
@@ -63,19 +41,6 @@ void QmlClipboardAdapter :: writeToDatabase(QString data){
     query.bindValue(0, data);
     query.bindValue(1, epoch.toString("d MMM yyyy h:mm AP"));
     query.bindValue(2, epoch.toString("yyyyMMddhhmmss"));
-    query.exec();
-}
-
-void QmlClipboardAdapter :: deleteDB(QString title){
-    QSqlQuery query;
-    query.prepare("DELETE FROM clip WHERE title = ?");
-    query.bindValue(0, title);
-    query.exec();
-}
-
-void QmlClipboardAdapter :: dropDB(){
-    QSqlQuery query;
-    query.prepare("DROP TABLE IF EXISTS clip");
     query.exec();
 }
 

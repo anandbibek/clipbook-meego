@@ -1,7 +1,7 @@
 import QtQuick 1.1
 import com.nokia.meego 1.1
 import com.nokia.extras 1.1
-import "reader.js" as Reader
+//import "reader.js" as Reader
 
 Page {
     id: mainPage
@@ -18,45 +18,42 @@ Page {
 
     function operate(){
         if(running){
-            if(clippie.text != "" && clippie.text != memory){
+            if(clippie.text !== "" && clippie.text !== memory){
 
                 var item = defaultItem()
                 item.title = clippie.text
-                item.arg = "insert"
 
                 itemModel1.insert(0,item)
+                //console.log("inserted " + item.title)
 
                 if(!autoRun.value)
-                    worker1.sendMessage(item)
+                    clippie.writeToDatabase(clippie.text)
 
                 memory = clippie.text
             }
             if(persistSetting.value){
-                if(clippie.text  == "")
+                if(clippie.text  === "" && memory !== "")
                     clippie.setText(memory)
             }
         }
     }
 
-    onStatusChanged: {
+    function initializer(){
 
-        if(status === PageStatus.Activating) {
+        if(itemView1.count>0)
+        memory = itemModel1.get(0).title
 
-            Reader.openDB()
-            Reader.readBoard()
-
-            if(itemView1.count>0)
-            memory = itemModel1.get(0).title
-
-            running = true
-            operate()
-
-        }
+        running = true
+        operate()
     }
 
     Connections{
         target: clippie
         onTextChanged : operate()
+        onReadFinished : initializer()
+        onEntryChanged : {
+            itemModel1.append({"title" : clippie.entry, "modified" : clippie.date})
+        }
     }
 
 
@@ -141,10 +138,7 @@ Page {
                 text: "Delete"
                 onClicked: {
                     itemModel1.remove(contextMenu.index1)
-                    var item = defaultItem()
-                    item.title = contextMenu.title
-                    item.arg = "delete"
-                    worker1.sendMessage(item)
+                    clippie.deleteDB(contextMenu.title)
                 }
             }
         }
@@ -193,34 +187,10 @@ Page {
                 }
             }
 
-//            MenuItem {
-//                CheckBox {
-//                    id: switch4
-//                    anchors.right: parent.right
-//                    anchors.rightMargin: 16
-//                    anchors.verticalCenter: parent.verticalCenter
-//                    onClicked: {
-//                        autoRun.value = (switch4.checked)*1
-
-//                        if(switch4.checked)
-//                            clippie.startDaemon()
-//                        else if(!switch4.checked)
-//                            clippie.killDaemon()
-//                    }
-//                }
-//                text: "Autostart & Background"
-//                onClicked: {
-//                    switch4.checked=!switch4.checked
-//                    autoRun.value = switch4.checked
-//                }
-//            }
-
             MenuItem {
                 text: "Clear all cache"
                 onClicked: {
-                    var item = defaultItem()
-                    item.arg = "drop"
-                    worker1.sendMessage(item)
+                    clippie.dropDB()
                     itemModel1.clear()
                 }
             }
@@ -229,9 +199,10 @@ Page {
                 onClicked: {
                     dialog.message = "A clipboard history manager.\n"
                             + "Clipbook stores all the text items you cut and "
-                            + "copied by your phone's default clipboard since starting this app."
+                            + "copied by your phone's default clipboard"
                             + "\n\nItem actions:\nCopy : Long press\nDelete : Swipe."
-                            + "\n\nNOTE: App needs to be running in background to access and manage clipboard"
+                            + "\n\nKeeping \"Background ON\" will allow app to autostart"
+                            + " on device boot and monitor changes in clipboard even when app is not running"
                             + "\n\nDeveloped by @Anand_Bibek\nhttp://theweekendcoder.blogspot.com"
                     dialog.open()
                 }
@@ -261,11 +232,9 @@ Page {
                 id: todoItemDelegate1
                 itemTitle: model.title
                 date: model.modified
-                newItem: !(model.id)
 
                 onClicked: {
 
-                    newItem = false
                     itemView1.currentIndex = index
 
                     contextMenu.index1 = itemView1.currentIndex
@@ -275,11 +244,7 @@ Page {
 
                 onDragged: {
                     itemModel1.remove(index)
-                    var item = defaultItem()
-                    item.title = model.title
-                    item.arg = "delete"
-                    worker1.sendMessage(item)
-                    memory = ""
+                    clippie.deleteDB(model.title)
                 }
 
                 onPressAndHold: {

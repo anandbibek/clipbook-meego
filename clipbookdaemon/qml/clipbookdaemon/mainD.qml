@@ -11,7 +11,7 @@ Item {
             clippie.killDaemon()
         }
         else {
-            initialise()
+            console.log("Daemon started")
             running = true
             operate()
         }
@@ -35,33 +35,14 @@ Item {
     function operate(){
         if(running){
             if(clippie.text !== "" && clippie.text !== memory){
-                insert()
+                clippie.writeToDatabase(clippie.text)
                 memory = clippie.text
             }
             if(persistSetting.value){
-                if(clippie.text  === "")
+                if(clippie.text  === "" && memory != "")
                     clippie.setText(memory)
             }
         }
-    }
-
-    function insert(){
-        var _db = openDatabaseSync("ClipDB2","1.0","ClipBoard Database",1000000);
-        _db.transaction(
-                    function(tx){
-                        tx.executeSql("INSERT OR REPLACE INTO clip (title, modified, id) VALUES(?,?,?)",
-                                      [clippie.text, Qt.formatDateTime(new Date(),("d MMM yyyy h:mm AP")), Qt.formatDateTime(new Date(), ("yyyyMMddhhmmss")) ]);
-                    }
-                    )
-    }
-
-    function initialise(){
-        var _db = openDatabaseSync("ClipDB2","1.0","ClipBoard Database",1000000);
-        _db.transaction(
-                    function(tx){
-                        tx.executeSql("CREATE TABLE IF NOT EXISTS clip (title TEXT UNIQUE, modified TEXT, id TEXT)");
-                    }
-                    )
     }
 
 }
