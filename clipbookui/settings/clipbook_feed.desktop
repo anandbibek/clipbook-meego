@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=ControlPanelApplet
+Name=Clipbook
+X-logical-id=clipbook
+X-translation-catalog=clipbookcatalog
+Icon=
+X-Maemo-Service=com.nokia.DuiControlPanel
+X-Maemo-Method=com.nokia.DuiControlPanelIf.appletPage
+X-Maemo-Object-Path=/
+# this has to be identical to the value in Name
+X-Maemo-Fixed-Args=Clipbook
+
+[DUI]
+X-DUIApplet-Applet=libdeclarative.so
+
+[DCP]
+Category=Events Feed
+Order=99
+Part=clipbookfeed.xml

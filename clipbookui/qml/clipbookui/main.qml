@@ -14,7 +14,7 @@ PageStackWindow {
         }
         theme.inverted = themeSetting.value
         pageStack.push(mainPage)
-        clippie.readDatabase()
+        mainPage.initializer()
     }
 
 
@@ -22,10 +22,10 @@ PageStackWindow {
         id : mainPage
     }
 
-//    WorkerScript{
-//        id: worker1
-//        source: "storage.js"
-//    }
+    WorkerScript{
+        id: worker1
+        source: "storage.js"
+    }
 
     GConfItem {
        id: themeSetting
@@ -33,9 +33,9 @@ PageStackWindow {
        defaultValue: 0
     }
     GConfItem {
-       id: filePath
-       key: "/apps/clipbook/settings/filePath"
-       defaultValue: "/home/user/MyDocs/Documents/clipbook.txt"
+       id: feedEnabled
+       key: "/apps/ControlPanel/clipbook/feed"
+       defaultValue: true
     }
     GConfItem {
        id: persistSetting

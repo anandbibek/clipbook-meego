@@ -29,6 +29,11 @@ WorkerScript.onMessage = function(item)
                                 tx.executeSql("DROP TABLE IF EXISTS clip");
                             }
                             )
+                _db.transaction(
+                            function(tx){
+                                tx.executeSql("CREATE TABLE IF NOT EXISTS clip (title MEMO UNIQUE, modified TEXT, id TEXT)");
+                            }
+                            )
             }
 
 

@@ -7,13 +7,14 @@ Item {
 
     Component.onCompleted: {
         if(!(autoRun.value)){
-            console.log("Auto Exiting...")
-            clippie.killDaemon()
+            console.log("Auto Exiting...");
+            clippie.suicide();
         }
         else {
-            console.log("Daemon started")
-            running = true
-            operate()
+            console.log("Daemon started");
+            initialise();
+            running = true;
+            operate();
         }
     }
 
@@ -27,22 +28,55 @@ Item {
         key: "/apps/clipbook/settings/autoRun"
         defaultValue: 0
     }
+    GConfItem {
+        id: feedEnabled
+        key: "/apps/ControlPanel/clipbook/feed"
+        defaultValue: true
+     }
     Connections{
         target: clippie
-        onTextChanged : operate()
+        onTextChanged : operate();
+    }
+    WorkerScript{
+        id : worker
+        source: "storageD.js"
     }
 
     function operate(){
         if(running){
-            if(clippie.text !== "" && clippie.text !== memory){
-                clippie.writeToDatabase(clippie.text)
-                memory = clippie.text
+            var data = clippie.text
+            if(data !== "" && data !== memory){
+                worker.sendMessage(data)
+                memory = data;
+                if(feedEnabled.value==true)
+                    clippie.publishFeed();
             }
             if(persistSetting.value){
-                if(clippie.text  === "" && memory != "")
-                    clippie.setText(memory)
+                if(data  === "" && memory != "") {
+                    console.log("Persist via daemon :: " + memory)
+                    clippie.setText(memory);
+                }
             }
         }
     }
+
+    function initialise(){
+        var _db = openDatabaseSync("ClipDB2","1.0","ClipBoard Database",1000000);
+        _db.transaction(
+                    function(tx){
+                        tx.executeSql("CREATE TABLE IF NOT EXISTS clip (title MEMO UNIQUE, modified TEXT, id TEXT)");
+                    }
+                    )
+    }
+
+//    function insert(){
+//        var _db = openDatabaseSync("ClipDB2","1.0","ClipBoard Database",1000000);
+//        _db.transaction(
+//                    function(tx){
+//                        tx.executeSql("INSERT OR REPLACE INTO clip (title, modified, id) VALUES(?,?,?)",
+//                                      [clippie.text, Qt.formatDateTime(new Date(),("d MMM yyyy h:mm AP")), Qt.formatDateTime(new Date(), ("yyyyMMddhhmmss")) ]);
+//                    }
+//                    )
+//    }
 
 }

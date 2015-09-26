@@ -1,7 +1,7 @@
 import QtQuick 1.1
 import com.nokia.meego 1.1
 import com.nokia.extras 1.1
-//import "reader.js" as Reader
+import "reader.js" as Reader
 
 Page {
     id: mainPage
@@ -18,30 +18,46 @@ Page {
 
     function operate(){
         if(running){
-            if(clippie.text !== "" && clippie.text !== memory){
+            var data = clippie.text;
+            if(data !== "" && data !== memory){
 
-                var item = defaultItem()
-                item.title = clippie.text
+                var item = defaultItem();
+                item.title = data;
+                item.arg = "insert";
 
-                itemModel1.insert(0,item)
-                //console.log("inserted " + item.title)
+                itemModel1.insert(0,item);
 
-                if(!autoRun.value)
-                    clippie.writeToDatabase(clippie.text)
+                if(!autoRun.value) {
+                    worker1.sendMessage(item);
 
-                memory = clippie.text
+                    if(feedEnabled.value==true) {
+                        clippie.publishFeed();
+                    }
+                }
+
+                memory = data
             }
-            if(persistSetting.value){
-                if(clippie.text  === "" && memory !== "")
-                    clippie.setText(memory)
+            if(persistSetting.value && !autoRun.value){
+                if(data  === "" && memory !== "") {
+                    console.log("Ping")
+                    clippie.setText(memory);
+                    if(clippie.text===""){
+                        console.log("STUCK")
+                        //clippie.setText("...");
+                        //clippie.setText(memory);
+                    }
+                }
             }
         }
     }
 
     function initializer(){
 
+        Reader.openDB();
+        Reader.readBoard();
+
         if(itemView1.count>0)
-        memory = itemModel1.get(0).title
+            memory = itemModel1.get(0).title
 
         running = true
         operate()
@@ -50,10 +66,6 @@ Page {
     Connections{
         target: clippie
         onTextChanged : operate()
-        onReadFinished : initializer()
-        onEntryChanged : {
-            itemModel1.append({"title" : clippie.entry, "modified" : clippie.date})
-        }
     }
 
 
@@ -83,6 +95,7 @@ Page {
             }
 
             checked: autoRun.value
+            iconSource: "image://theme/icon-m-toolbar-mediacontrol-" + (checked? "pause" : "play") + (theme.inverted? "-white" : "")
             onClicked: {
                 privatePressed()
                 autoRun.value = (checked)*1
@@ -129,8 +142,8 @@ Page {
             MenuItem {
                 text: "Write to text file"
                 onClicked: {
-                    clippie.writeToFile(contextMenu.title, filePath.value)
-                    banner.text = "written to Documents/Clipbook.txt" //+ filePath.value
+                    clippie.writeToFile(contextMenu.title, "/home/user/MyDocs/Documents/clipbook.txt")
+                    banner.text = "written to Documents/Clipbook.txt"
                     banner.show()
                 }
             }
@@ -138,7 +151,12 @@ Page {
                 text: "Delete"
                 onClicked: {
                     itemModel1.remove(contextMenu.index1)
-                    clippie.deleteDB(contextMenu.title)
+                    var item = defaultItem()
+                    item.title = contextMenu.title
+                    item.arg = "delete"
+                    if(memory === contextMenu.title)
+                        memory = ""
+                    worker1.sendMessage(item)
                 }
             }
         }
@@ -148,6 +166,7 @@ Page {
         onStatusChanged: {
             switch2.checked = themeSetting.value
             switch3.checked = persistSetting.value
+            switch4.checked = feedEnabled.value
         }
         id: mainMenu
         content: MenuLayout {
@@ -172,6 +191,22 @@ Page {
             }
             MenuItem {
                 CheckBox {
+                    id: switch4
+                    anchors.right: parent.right
+                    anchors.rightMargin: 16
+                    anchors.verticalCenter: parent.verticalCenter
+                    onClicked: {
+                        feedEnabled.value = (switch4.checked)
+                    }
+                }
+                text: "Publish to feed"
+                onClicked: {
+                    switch4.checked=!switch4.checked
+                    feedEnabled.value = (switch4.checked)
+                }
+            }
+            MenuItem {
+                CheckBox {
                     id: switch3
                     anchors.right: parent.right
                     anchors.rightMargin: 16
@@ -190,8 +225,10 @@ Page {
             MenuItem {
                 text: "Clear all cache"
                 onClicked: {
-                    clippie.dropDB()
                     itemModel1.clear()
+                    var item = defaultItem()
+                    item.arg = "drop"
+                    worker1.sendMessage(item)
                 }
             }
             MenuItem {
@@ -243,8 +280,13 @@ Page {
                 }
 
                 onDragged: {
+                    var item = defaultItem()
+                    item.title = model.title
+                    item.arg = "delete"
+                    worker1.sendMessage(item)
+                    if(memory === model.title)
+                        memory = ""
                     itemModel1.remove(index)
-                    clippie.deleteDB(model.title)
                 }
 
                 onPressAndHold: {
@@ -254,6 +296,17 @@ Page {
                     banner.text = "Copied to Clipboard"
                     banner.show()
                 }
+
+
+            }
+
+            Label{
+                visible: itemView1.count==0
+                opacity: 0.30
+                text: "No entries yet"
+                anchors.centerIn: parent
+                font.family: "Nokia Pure Text Light"
+                font.pixelSize: 50
             }
         }
 
@@ -262,6 +315,7 @@ Page {
         }
         InfoBanner {
             id:banner
+            iconSource: "icon-m-content-clipart-inverse.png"
         }
     }
 }

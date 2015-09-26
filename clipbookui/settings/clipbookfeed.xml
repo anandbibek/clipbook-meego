@@ -1,0 +1,4 @@
+<settings>
+<boolean key="/apps/clipbook/settings/persistSetting" title="Persist data in clipboard"></boolean>
+<boolean key="/apps/ControlPanel/clipbook/feed" title="Publish to feed"></boolean>
+</settings>

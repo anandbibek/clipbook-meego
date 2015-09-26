@@ -10,7 +10,7 @@ function createTable()
 {
     _db.transaction(
                 function(tx){
-                    tx.executeSql("CREATE TABLE IF NOT EXISTS clip (title TEXT UNIQUE, modified TEXT, id TEXT)");
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS clip (title MEMO UNIQUE, modified TEXT, id TEXT)");
                 }
                 )
 }

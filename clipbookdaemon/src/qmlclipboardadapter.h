@@ -3,11 +3,9 @@
 
 #include <QApplication>
 #include <QClipboard>
-#include <QtSql/QtSql>
-#include <QDateTime>
+#include <meventfeed.h>
 #include <QObject>
 #include <QtDeclarative>
-#include <QDebug>
 
 class QmlClipboardAdapter : public QObject
 {
@@ -24,17 +22,15 @@ public:
     Q_INVOKABLE QString text(){
         return m_text;
     }
-
-    Q_INVOKABLE void killDaemon(){
+    Q_INVOKABLE void suicide(){
         system("killall clipbookdaemon");
     }
-    Q_INVOKABLE void writeToDatabase(QString data);
+    Q_INVOKABLE void publishFeed(void);
 
 
 private:
     QClipboard *clipboard;
     QString m_text;
-    QSqlDatabase db;
 
 signals:
     void textChanged(void);

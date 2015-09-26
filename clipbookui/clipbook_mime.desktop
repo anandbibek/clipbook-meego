@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=2.1
+Type=Application
+Terminal=false
+Name=Clipbook
+NotShowIn=X-MeeGo;
+Exec=/opt/clipbookui/bin/clipbookui %U
+Icon=/usr/share/icons/hicolor/80x80/apps/clipbookui80.png
+X-Window-Icon=
+X-HildonDesk-ShowInToolbar=true
+X-Osso-Type=application/x-executable
+MimeType=x-maemo-urischeme/clipbook;
